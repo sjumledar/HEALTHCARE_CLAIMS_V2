@@ -1,0 +1,55 @@
+name: SNOWFLAKE DEV
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Database/Snowflake/**'
+
+env:
+  TENANT_ID: ${{ secrets.SERVICE_PRINCIPAL_LZ_TENANT_ID }} 
+  SF_ACCOUNT: ${{ secrets.US_SF_ACCOUNT }}
+  SF_DATABASE: ${{ vars.US_SF_DATABASE }}
+
+jobs:
+  deploy-snowflake-changes-job:
+    runs-on: [self-hosted, linux, container-app-job]
+
+    steps:
+      - name: Checkout Repository Content
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+
+      - name: Install Python Packages
+        run: |
+          python3.9 -m pip install --upgrade pip
+          pip install schemachange
+
+      - name: Extract SF credentials from AKV for DEV
+        env: 
+            KV: "acssause2devkv01"
+            CLIENT_ID: ${{ secrets.SERVICE_PRINCIPAL_LZ_CLIENT_ID_DEV }} 
+            CLIENT_PWD: ${{ secrets.SERVICE_PRINCIPAL_LZ_CLIENT_PWD_DEV }}
+        run: |
+            az login --service-principal -u $CLIENT_ID -p $CLIENT_PWD --tenant $TENANT_ID
+            touch .env
+            az keyvault secret show --vault-name $KV --name snow-sa-gh-runner-rsa-private-key --query value -o tsv >> .env    
+            SNOWFLAKE_PRIVATE_KEY_PASSPHRASE=$(az keyvault secret show --vault-name $KV --name snow-sa-gh-runner-rsa-key-password --query value -o tsv)
+            echo "::add-mask::$SNOWFLAKE_PRIVATE_KEY_PASSPHRASE"
+            echo SNOWFLAKE_PRIVATE_KEY_PASSPHRASE=$SNOWFLAKE_PRIVATE_KEY_PASSPHRASE >> $GITHUB_ENV            
+            echo "SNOWFLAKE_USER=$(az keyvault secret show --vault-name $KV --name snow-sa-gh-runner-user-id --query value -o tsv)" >> $GITHUB_ENV
+            
+      - name: Run schemachange 
+        env:
+          SF_ROLE: ${{ vars.US_SF_ROLE_DEV }}
+          SF_WAREHOUSE: ${{ vars.US_SF_WAREHOUSE_DEV }}
+          SNOWFLAKE_PRIVATE_KEY_PATH: ".env"
+          CHG_HIST_TBL: 'SA_SHARED_DATA.DEV.TBL_GIT_CHANGE_HISTORY'
+          PARAM: '{"schema":"DEV"}'
+
+        run: |      
+          export PATH=$PATH:/home/github/.local/bin
+          schemachange -f $GITHUB_WORKSPACE/Database/Snowflake -a $SF_ACCOUNT -u $SNOWFLAKE_USER -r $SF_ROLE -w $SF_WAREHOUSE -d $SF_DATABASE -c $CHG_HIST_TBL --create-change-history-table --vars $PARAM
+          rm .env

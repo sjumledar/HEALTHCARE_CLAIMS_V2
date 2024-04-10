@@ -1,0 +1,66 @@
+name: GO LZ INT/STG/PROD
+
+on:
+  push:
+    tags:
+      - 'go-int-deploy'
+      - 'go-stg-deploy*'
+      - 'go-prod-deploy*'
+
+env:
+  AZURE_INT_FUNCTIONAPP_NAME: # set this to your INT app name i.e. 'int-acsuse2prodpropaopazf'
+  AZURE_STG_FUNCTIONAPP_NAME: # set this to your STG app name i.e. 'stg-acsuse2prodpropaopazf'
+  AZURE_PROD_FUNCTIONAPP_NAME: # set this to your PROD app name i.e. 'prod-acsuse2prodpropaopazf'
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'GO/Orchestrator/' # set this to the path to your web app project, defaults to the repository root
+
+jobs:
+  build-and-deploy:
+    runs-on: [self-hosted, linux, container-app-job]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python Environment
+        uses: actions/setup-python@v4
+
+      - name: 'Resolve Project Dependencies Using Pip'
+        shell: bash
+        run: |
+          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          python3.9 -m pip install --upgrade pip
+          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+          popd   
+
+      - name: 'Run Azure Functions Action for INT'
+        if: ${{ contains(github.event.ref, 'int') }}
+        uses: Azure/functions-action@v1
+        id: fa_1
+        with:
+          app-name: ${{ env.AZURE_INT_FUNCTIONAPP_NAME }}
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          publish-profile: # set this to your INT publishing profile secret name
+          scm-do-build-during-deployment: true
+          enable-oryx-build: true
+
+      - name: 'Run Azure Functions Action for STG'
+        if: ${{ contains(github.event.ref, 'stg') }}
+
+        uses: Azure/functions-action@v1
+        id: fa_2
+        with:
+          app-name: ${{ env.AZURE_STG_FUNCTIONAPP_NAME }}
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          publish-profile: # set this to your STG publishing profile secret name
+          scm-do-build-during-deployment: true
+          enable-oryx-build: true
+
+      - name: 'Run Azure Functions Action for PROD'
+        if: ${{ contains(github.event.ref, 'prod') }}
+        uses: Azure/functions-action@v1
+        id: fa_3
+        with:
+          app-name: ${{ env.AZURE_PROD_FUNCTIONAPP_NAME }}
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          publish-profile: # set this to your PROD publishing profile secret name
+          scm-do-build-during-deployment: true
+          enable-oryx-build: true

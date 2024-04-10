@@ -1,0 +1,22 @@
+name: PERMISSION INIT
+on:
+  create:
+jobs:
+  initialize:
+    # we need to keep this as ubuntu until the GH issue has resolved that requires the repo name to be added to the image manually
+    runs-on: ubuntu-latest
+    steps:
+    - name: Add sa-ie-admins as admins
+      run: |
+        curl --location --request PUT 'https://api.github.com/orgs/archsa/teams/sa-ie-admins/repos/archsa/${{ github.event.repository.name }}' \
+        --header 'Accept: application/vnd.github+json' \
+        --header 'X-GitHub-Api-Version: 2022-11-28' \
+        --header 'Content-Type: application/json' \
+        --header 'Authorization: Bearer ${{ secrets.ACCESS_TOKEN }}' \
+        --data '{"permission":"admin"}'
+    - name: Disable this workflow
+      run: |
+        curl --location --request PUT 'https://api.github.com/repos/archsa/${{ github.event.repository.name }}/actions/workflows/init.yml/disable' \
+        --header 'Accept: application/vnd.github+json' \
+        --header 'X-GitHub-Api-Version: 2022-11-28' \
+        --header 'Authorization: Bearer ${{ secrets.ACCESS_TOKEN }}'

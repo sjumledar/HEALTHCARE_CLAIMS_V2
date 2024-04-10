@@ -1,0 +1,66 @@
+name: DATABRICKS LZ DEV
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Build/**'
+      - 'Batch/**'
+
+jobs:
+  extract_env_repo_path:
+    runs-on: [self-hosted, linux, container-app-job]
+    outputs:
+        repo_name: ${{ steps.set_repo_name.outputs.repo_name }}
+    steps:
+      - id: get_repo_name
+        uses: ASzc/change-string-case-action@v5
+        with:
+          string: ${{ github.event.repository.name }}
+
+      #If Repo Name doesn't match Databricks Folder Name, then use uppercase or rename repo to match
+      - id: set_repo_name
+        run: |
+           echo "Upper Repo Name is ${{ steps.get_repo_name.outputs.uppercase }}"
+           ##echo "repo_name=${{ github.event.repository.name }}" >> $GITHUB_OUTPUT
+           echo "repo_name=${{ steps.get_repo_name.outputs.uppercase }}" >> $GITHUB_OUTPUT
+           
+  deploy:
+    runs-on: [self-hosted, linux, container-app-job]
+    needs: extract_env_repo_path
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v4
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+         filters: |
+          pathBuild:
+            - 'Build/**'
+          pathBatch:
+            - 'Batch/**'
+
+      - name: install Databricks CLI
+        run: |
+          python3.9 -m pip install --upgrade pip
+          pip install databricks-cli
+
+      - name: Import Databricks notebooks only for Build
+        if: steps.filter.outputs.pathBuild == 'true'
+        uses: ./.github/workflows/action/
+        with:
+          databricks-host: ${{secrets.US_LZ_DATABRICKS_HOST_DEV}}
+          databricks-token: ${{secrets.US_LZ_DATABRICKS_TOKEN_DEV}}
+          local-path: ./Build
+          remote-path: /${{needs.extract_env_repo_path.outputs.repo_name}}/Build
+          
+      - name: Import Databricks notebooks only for Batch
+        if: steps.filter.outputs.pathBatch == 'true'
+        uses: ./.github/workflows/action/
+        with:
+          databricks-host: ${{secrets.US_LZ_DATABRICKS_HOST_DEV}}
+          databricks-token: ${{secrets.US_LZ_DATABRICKS_TOKEN_DEV}}
+          local-path: ./Batch
+          remote-path: /${{needs.extract_env_repo_path.outputs.repo_name}}/Batch
+
+  

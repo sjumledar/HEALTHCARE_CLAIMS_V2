@@ -1,0 +1,40 @@
+name: DR DEV EXTRACT
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'DecisionRules/alias.py'  
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: [self-hosted, linux, container-app-job]
+    steps:
+    
+      - name: Checkout Repository Content
+        uses: actions/checkout@v2 # checkout the repository contents with admin token
+        with: 
+          fetch-depth: 0
+          ref: main
+          token: ${{ secrets.ACCESS_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+          
+      - name: Install Python Packages
+        run: |
+          python3.9 -m pip install --upgrade pip
+          pip install requests
+      
+      - name: Extract JSON from Decision Rules DEV Space
+        env:
+          MANAGEMENT_API_KEY: ${{ secrets.DR_MANAGEMENT_API_SADEV }} 
+        run: |
+          python3.9 .github/workflows/action/dr_dev_extract.py 
+          git config user.name "sa-ie-admins"
+          git config user.email "StrategicAnalytics-ImplementationTeam@archgroup.com"
+          git add .
+          git commit --allow-empty -m "Decision Rules DEV Extract (auto-generated)"
+          git push

@@ -1,0 +1,39 @@
+{
+    "ScoreRequestInput": {
+        "ScoreRequestId": "AT_322-3",
+        "TransactionType": "Renewal",
+        "TransactionTimeStamp": "2022-04-06 07:02:02.690",
+        "SourceSystem": "UKRQS_Test",
+        "SourceSystemAction": "Score",
+        "ProductType": "CC"
+    },
+    "PolicyInput": {
+        "PolicyNumber": "FLP003926807",
+        "EffectiveDate": "2017-07-01 00:00:00.690",
+        "ExpirationDate": "2018-07-01 00:00:00.690"
+    },
+    "SubmissionInput": {
+        "SubmissionNumber": "S1386611",
+        "SubmissionCreateDate": "2017-07-01 00:00:00.690",
+        "NatureOfBusiness": "Motor Trade Business Description\tsales of Used Motor Vehicles and Mechanical Service & Repairs",
+        "PropertyTotalExposureBanded": "<=500K",
+        "PropertyClaimsHistory5YrsBinary": "1+"
+    },
+    "ClientInfoInput": {
+        "ClientNumber": 1248,
+        "ClientName": "GW Cowler Precision Engineers Limited",
+        "ClientLocationHouseNumberStreetName": "16 Merchant Drive",
+        "ClientLocationLocalityName": "Mead Lane",
+        "ClientLocationTown": "HERTFORD",
+        "ClientLocationPostalCode": "SG13 7AY",
+        "ClientLocationCountry": "UK"
+    },
+    "TestResponsesInput": [
+        {
+            "ServiceContractName": "DNBUK_REUSE",
+            "ServiceContractTestRequest": "{\"AccountName\":\"GW Cowler Precision Engineers Limited\",\"StreetAddress1\":\"16 Merchant Drive\",\"StreetAddress2\":\"Mead Lane\",\"City\":\"HERTFORD\",\"State\":\"\",\"ZipCode\":\"SG13 7AY\",\"ZipCodeExt\":\"\",\"PhoneNumber\":\"\",\"Country\":\"UK\",\"DUNSNumber\":\"\",\"GetCreditScore\":\"1\",\"SourceSystem\":\"UKRConversion\",\"ExternalCorrelationID\":\"\",\"Errors\":[],\"Warnings\":[]}",
+            "ServiceContractTestResponse": "{\"ErrorsList\":[],\"request\":{\"AccountName\":\"GW Cowler Precision Engineers Limited\",\"StreetAddress1\":\"16 Merchant Drive,Mead Lane\",\"StreetAddress2\":\"\",\"City\":\"HERTFORD\",\"State\":\"\",\"ZipCode\":\"SG13 7AY\",\"ZipCodeExt\":\"\",\"PhoneNumber\":\"\",\"Country\":\"UK\",\"DUNSNumber\":\"\",\"GetCreditScore\":\"1\",\"SourceSystem\":\"UKRConversion\",\"ExternalCorrelationID\":\"\",\"Errors\":[],\"Warnings\":[]},\"dnBResponse\":{\"DUNSNumber\":\"227981776\",\"ConfidenceCodeValue\":\"10\",\"MatchGradeText\":\"AAAAZZZAFBA\",\"OrganizationName\":\"G W Cowler Precision Engineers\",\"PrimaryTownName\":\"HERTFORD\",\"TelecommunicationNumber\":\"01992501494\",\"AddressLine\":\"16 Merchant Drive Mead Lane\",\"CountryISOAlpha2Code\":\"GB\",\"PostalCode\":\"SG13 7AY\",\"TerritoryAbbreviatedName\":\"\",\"transactionResult\":{\"SeverityText\":\"Information\",\"ResultID\":\"200\",\"ResultText\":\"Success\"}},\"creditResponse\":{\"DUNSNumber\":\"227981776\",\"OrganizationName\":\"G W Cowler Precision Engineers\",\"RawScore\":\"\",\"NationalPercentile\":\"\",\"StressScoreOverrideReason\":\"\",\"USSIC1972\":\"\",\"USSIC1972EU\":\"8911\",\"UKSIC2007\":\"71121\",\"transactionResult\":{\"SeverityText\":\"Information\",\"ResultID\":\"200\",\"ResultText\":\"Success\"}}}",
+            "ServiceContractsToBeSkipped": "DNBUK_REUSE,DNBUK"
+        }
+    ]
+}

@@ -1,0 +1,35 @@
+{
+  "scriptFile": "__init__.py",
+  "bindings": [
+    {
+      "authLevel": "function",
+      "type": "httpTrigger",
+      "direction": "in",
+      "name": "req",
+      "methods": [
+        "post"
+      ]
+    },
+    // {
+    //   "name": "SampleInputData",
+    //   "type": "blob",
+    //   "dataType": "binary",
+    //   "path": "<file path>/<filename>.csv",
+    //   "connection": "DataLakeStorage",
+    //   "direction": "in"
+    // },
+    // {
+    //   "name": "ResultLog",
+    //   "type": "blob",
+    //   "dataType": "binary",
+    //   "path": "<file path>/{CORRELATIONID}__{DateTime}.csv",
+    //   "connection": "DataLakeStorage",
+    //   "direction": "out"
+    // },
+    {
+      "type": "http",
+      "direction": "out",
+      "name": "$return"
+    }
+  ]
+}

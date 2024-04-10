@@ -1,0 +1,32 @@
+name: AZSQL LZ DEV
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Database/AzureSQL/**'
+
+jobs:
+  Deploy:
+    runs-on: [self-hosted, linux, container-app-job]
+    steps:
+    - name: Checkout Repo
+      run: echo "ACTIONS_ALLOW_UNSECURE_COMMANDS=true" >> $GITHUB_ENV
+      
+    - name: Checkout Repo
+      uses: actions/checkout@v2
+      
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1.4.0
+        
+    - name: Restore Dependencies 
+      working-directory: Database/AzureSQL
+      run: dotnet restore   
+        
+    - name: Deploy
+      working-directory: Database/AzureSQL
+      env: 
+        SAImplementation: ${{ secrets.US_LZ_AZSQL_CONNSTR_SAIMPLEM_DEV }}
+        SAMetadata: ${{ secrets.US_LZ_AZSQL_CONNSTR_SAMETADATA_DEV }}
+        SAOp: ${{ secrets.US_LZ_AZSQL_CONNSTR_SAOP_DEV }}
+      run: dotnet run

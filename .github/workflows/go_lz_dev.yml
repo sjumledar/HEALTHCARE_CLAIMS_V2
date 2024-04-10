@@ -1,0 +1,41 @@
+name: GO LZ DEV
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'GO/Orchestrator/**'  
+  workflow_dispatch:
+
+env:
+  AZURE_FUNCTIONAPP_NAME: # set this to your app name i.e. 'dev-acsuse2prodpropaopazf'
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'GO/Orchestrator/' # set this to the path to your web app project, defaults to the repository root
+
+jobs:
+  build-and-deploy:
+    runs-on: [self-hosted, linux, container-app-job]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python Environment
+        uses: actions/setup-python@v4
+
+      - name: 'Resolve Project Dependencies Using Pip'
+        shell: bash
+        run: |
+          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          python3.9 -m pip install --upgrade pip
+          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+          popd   
+
+      - name: 'Run Azure Functions Action'
+        uses: Azure/functions-action@v1
+        id: fa
+        with:
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          publish-profile: # set this to your DEV publishing profile secret name
+          scm-do-build-during-deployment: true
+          enable-oryx-build: true

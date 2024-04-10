@@ -1,0 +1,33 @@
+# Owners of any files in the GO/ModelServe directory, including any subdirectories
+# Recommendation: DS project leads and IE admin team
+/GO/ModelServe @{DS-PROJECT-LEAD} @archsa/sa-ie-admins
+
+# Owners of any files in the GO/Orchestrator directory, including any subdirectories
+# Recommendation: DE project leads and IE admin team
+/GO/Orchestrator @{DE-PROJECT-LEAD} @archsa/sa-ie-admins
+
+# Owners of any files in the build directory, including any subdirectories
+# Recommendation: DE/DS project leads and IE admin team
+/Build/ @{DE-PROJECT-LEAD} @{DS-PROJECT-LEAD} @archsa/sa-ie-admins
+
+# Owners of any files in the batch directory, including any subdirectories
+# Recommendation: Justin Bair (jbair42), DE project leads, and IE admin team
+/Batch/ @jbair42 @{DE-PROJECT-LEAD} @archsa/sa-ie-admins
+
+# Owners of any files in the database directory, including any subdirectories
+# Recommendation: Justin Bair (jbair42), DE project leads, and IE admin team
+/Database/ @jbair42 @{DE-PROJECT-LEAD} @archsa/sa-ie-admins
+
+# Owners of any files in the data visualization directory, including any subdirectories
+# Recommendation: Swapnil Joshi (swapsjosharch) and IE admin team
+/DataVisualization/ @swapsjosharch @archsa/sa-ie-admins
+
+# Owners of any files in the build directory, including any subdirectories
+# Recommendation: DE/DS project leads and IE admin team
+/DecisionRules/ @{DE-PROJECT-LEAD} @{DS-PROJECT-LEAD} @archsa/sa-ie-admins
+
+# The remaining directories and repository files are owned by the IE admin team only
+/.github/ @archsa/sa-ie-admins
+/Documents/ @archsa/sa-ie-admins
+/GO/Tests/ @archsa/sa-ie-admins
+

@@ -1,0 +1,35 @@
+name: databricks-import-directory
+description: 'Github Action that imports a local directory into the Databricks Workspace'
+
+inputs:
+  databricks-host:
+    description: 'Databricks Host'
+    required: true
+  databricks-token:
+    description: 'Databricks Token'
+    required: true
+  local-path:
+    description: 'LOCAL_NOTEBOOKS_PATH'
+    required: true
+  remote-path:
+    description: 'REMOTE_NOTEBOOK_PATH'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - id: import-notebooks
+      run: | 
+        if databricks workspace delete --recursive "$REMOTE_NOTEBOOK_PATH"; then
+          :
+        else 
+          databricks workspace mkdirs "$REMOTE_NOTEBOOK_PATH"/
+        fi
+        databricks workspace import_dir "$LOCAL_NOTEBOOK_PATH" "$REMOTE_NOTEBOOK_PATH" -o
+
+      shell: bash
+      env:
+        DATABRICKS_HOST: ${{ inputs.databricks-host}}
+        DATABRICKS_TOKEN: ${{ inputs.databricks-token}}
+        LOCAL_NOTEBOOK_PATH: ${{ inputs.local-path}}
+        REMOTE_NOTEBOOK_PATH: ${{ inputs.remote-path}}

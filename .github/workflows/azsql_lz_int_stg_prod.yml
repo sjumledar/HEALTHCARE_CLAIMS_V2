@@ -1,0 +1,52 @@
+name: AZSQL LZ INT/STG/PROD
+
+on:
+  push:
+    tags:
+      - 'db-int-azsql*'
+      - 'db-stg-azsql*'
+      - 'db-prod-azsql*'
+
+jobs:
+  Deploy:
+    runs-on: [self-hosted, linux, container-app-job]
+    steps:
+    - name: Checkout Repo
+      run: echo "ACTIONS_ALLOW_UNSECURE_COMMANDS=true" >> $GITHUB_ENV
+      
+    - name: Checkout Repo
+      uses: actions/checkout@v2
+      
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1.4.0
+
+    - name: Restore dependencies 
+      working-directory: Database/AzureSQL
+      run: dotnet restore
+
+    - name: Deploy to INT
+      if: ${{ contains(github.event.ref, 'int') }}
+      working-directory: Database/AzureSQL
+      env: 
+        SAImplementation: ${{ secrets.US_LZ_AZSQL_CONNSTR_SAIMPLEM_INT }}
+        SAMetadata: ${{ secrets.US_LZ_AZSQL_CONNSTR_SAMETADATA_INT }}
+        SAOp: ${{ secrets.US_LZ_AZSQL_CONNSTR_SAOP_INT }}
+      run: dotnet run
+
+    - name: Deploy to STG
+      if: ${{ contains(github.event.ref, 'stg') }}
+      working-directory: Database/AzureSQL
+      env: 
+        SAImplementation: ${{ secrets.US_LZ_AZSQL_CONNSTR_SAIMPLEM_STG }}
+        SAMetadata: ${{ secrets.US_LZ_AZSQL_CONNSTR_SAMETADATA_STG }}
+        SAOp: ${{ secrets.US_LZ_AZSQL_CONNSTR_SAOP_STG }}
+      run: dotnet run
+      
+    - name: Deploy to PROD
+      if: ${{ contains(github.event.ref, 'prod') }}
+      working-directory: Database/AzureSQL
+      env: 
+        SAImplementation: ${{ secrets.US_LZ_AZSQL_CONNSTR_SAIMPLEM_PROD }}
+        SAMetadata: ${{ secrets.US_LZ_AZSQL_CONNSTR_SAMETADATA_PROD }}
+        SAOp: ${{ secrets.US_LZ_AZSQL_CONNSTR_SAOP_PROD }}
+      run: dotnet run

@@ -1,0 +1,98 @@
+name: DATABRICKS LZ INT/STG/PROD
+on:
+  push:
+    tags:
+      - 'batch*int*'
+      - 'batch*stg*'
+      - 'batch*prod*'
+      
+jobs:
+  extract_env_repo_path:
+    runs-on: [self-hosted, linux, container-app-job]
+    outputs:
+        repo_name: ${{ steps.set_repo_name.outputs.repo_name }}
+        repo_path: ${{ steps.set_repo_path.outputs.repo_path }}
+    steps:
+      - id: get_repo_name
+        uses: ASzc/change-string-case-action@v5
+        with:
+          string: ${{ github.event.repository.name }}
+
+      #If Repo Name doesn't match Databricks Folder Name, then use uppercase or rename repo to match
+      - id: set_repo_name
+        run: |
+           echo "Upper Repo Name is ${{ steps.get_repo_name.outputs.uppercase }}"
+           echo "repo_name=${{ github.event.repository.name }}" >> $GITHUB_OUTPUT
+           echo "repo_name=${{ steps.get_repo_name.outputs.uppercase }}" >> $GITHUB_OUTPUT
+
+      - id: set_repo_path
+        run: |
+            echo $GITHUB_REF                ## Print the context variable
+            tag_name=${GITHUB_REF##*/}      ## get only the release tag name from GITHUB context variable
+            echo "Tag name is $tag_name"    ## Print the release tag name
+            
+            ##  Replace occurences of - with / to get the folder that needs to be released
+            tag_path="$(echo $tag_name | sed 's/-/\//g')"
+            echo "Modified tag name is $tag_path"    ## Print the release modified tag name
+            
+            ## Extract the path name (Batch/WC) from release tag (Release tag pattern = 'batch-WC-stg-1.0.0')
+            repo_path=${tag_path%/*}
+            repo_path=${repo_path%/*}
+            repo_path=${repo_path^}
+            echo "Repo Path name is $repo_path"
+            echo "repo_path=$repo_path" >> $GITHUB_OUTPUT       ## repo_path = Batch/WC
+
+  build_databricks_deploy_path:
+    runs-on: [self-hosted, linux, container-app-job]
+    needs: extract_env_repo_path
+    outputs:
+        local_path: ${{ steps.set_local_path.outputs.local_path }}
+        remote_path: ${{ steps.set_remote_path.outputs.remote_path }}
+    steps:
+      - id: set_local_path
+        run: |
+           local_path_1='./'
+           echo "local_path=${local_path_1}${{needs.extract_env_repo_path.outputs.repo_path}}" >> $GITHUB_OUTPUT
+
+      - id: set_remote_path
+        run: |
+           remote_path_1='/'
+           echo "remote_path=${remote_path_1}${{needs.extract_env_repo_path.outputs.repo_name}}${remote_path_1}${{needs.extract_env_repo_path.outputs.repo_path}}" >> $GITHUB_OUTPUT
+ 
+  deploy_job:
+    runs-on: [self-hosted, linux, container-app-job]
+    needs: build_databricks_deploy_path
+    steps:
+      - uses: actions/checkout@v2 
+      - uses: actions/setup-python@v4
+          
+      - name: install-databricks-cli
+        run: |
+          python3.9 -m pip install --upgrade pip
+          pip install databricks-cli
+      - name: Import Databricks Notebooks for INT
+        if: ${{ contains(github.event.ref, 'int') }}
+        uses: ./.github/workflows/action/
+        with:
+          databricks-host: ${{secrets.US_LZ_DATABRICKS_HOST_INT}}
+          databricks-token: ${{secrets.US_LZ_DATABRICKS_TOKEN_INT}}
+          local-path: ${{needs.build_databricks_deploy_path.outputs.local_path}}
+          remote-path: ${{needs.build_databricks_deploy_path.outputs.remote_path}}
+
+      - name: Import Databricks Notebooks for STG
+        if: ${{ contains(github.event.ref, 'stg') }}
+        uses: ./.github/workflows/action/
+        with:
+          databricks-host: ${{secrets.US_LZ_DATABRICKS_HOST_STG}}
+          databricks-token: ${{secrets.US_LZ_DATABRICKS_TOKEN_STG}}
+          local-path: ${{needs.build_databricks_deploy_path.outputs.local_path}}
+          remote-path: ${{needs.build_databricks_deploy_path.outputs.remote_path}}
+
+      - name: Import Databricks Notebooks for PROD
+        if: ${{ contains(github.event.ref, 'prod') }}
+        uses: ./.github/workflows/action/
+        with:
+          databricks-host: ${{secrets.US_LZ_DATABRICKS_HOST_PROD}}
+          databricks-token: ${{secrets.US_LZ_DATABRICKS_TOKEN_PROD}}
+          local-path: ${{needs.build_databricks_deploy_path.outputs.local_path}}
+          remote-path: ${{needs.build_databricks_deploy_path.outputs.remote_path}}

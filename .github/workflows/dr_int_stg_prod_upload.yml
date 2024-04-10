@@ -1,0 +1,48 @@
+name: DR INT/STG/PROD UPLOAD
+
+on:
+  push:
+    tags:
+      - 'dr-int-*'
+      - 'dr-stg*'
+      - 'dr-prod*'
+jobs:
+  build:
+    runs-on: [self-hosted, linux, container-app-job]
+    steps:
+      - name: Checkout Repository Content
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+
+      - name: Install Python Packages
+        run: |
+          python3.9 -m pip install --upgrade pip
+          pip install requests
+
+      - name: 'Upload Rule(s) and Rule Flow(s) to Integration'
+        if: ${{ contains(github.event.ref, 'dr-int') }}
+        id: INT
+        env:
+          MANAGEMENT_API_KEY: ${{ secrets.DR_MANAGEMENT_API_SAINT }} 
+        run: |
+          python3.9 .github/workflows/action/dr_int_stg_prod_upload.py   
+               
+      - name: 'Upload Rule(s) and Rule Flow(s) to Stage'
+        if: ${{ contains(github.event.ref, 'dr-stg') }}
+        id: STG
+        env:
+          MANAGEMENT_API_KEY: ${{ secrets.DR_MANAGEMENT_API_SASTG }} 
+        run: |
+          python3.9 .github/workflows/action/dr_int_stg_prod_upload.py
+      
+      - name: 'Upload Rule(s) and Rule Flow(s) to Production'
+        if: ${{ contains(github.event.ref, 'dr-prod') }}
+        id: PROD
+        env:
+          MANAGEMENT_API_KEY: ${{ secrets.DR_MANAGEMENT_API_SAPROD }} 
+        run: |
+          python3.9 .github/workflows/action/dr_int_stg_prod_upload.py
+
+  
